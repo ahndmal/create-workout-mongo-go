@@ -1,4 +1,4 @@
-package create_workout_mongo_go
+package gcp_mongo_sless
 
 import (
 	"context"
@@ -56,7 +56,7 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 
 		coll := client.Database("workouts").Collection("workouts")
 		doc := bson.D{
-			{"record", time.Now().UnixMilli()},
+			{"record", time.Now().Unix()},
 			{"sets", workout.Sets},
 			{"workout_date", workout.WorkoutDate},
 			{"creation_date", time.Now().String()},

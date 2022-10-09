@@ -1,4 +1,4 @@
-module example.com/gcf
+module github.com/AndriiMaliuta
 
 go 1.18
 
