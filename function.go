@@ -56,17 +56,17 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 
 		coll := client.Database("workouts").Collection("workouts")
 		doc := bson.D{
-			{"record", workout.Record},
+			{"record", time.Now().UnixMilli()},
 			{"sets", workout.Sets},
 			{"workout_date", workout.WorkoutDate},
-			{"creation_date", workout.CreationDate},
+			{"creation_date", time.Now().String()},
 			{"workout_type", workout.WorkoutType},
 			{"comments", workout.Comments},
 			{"day", workout.Day},
-			{"month", workout.Month},
-			{"week", workout.Week},
-			{"month", workout.Month},
-			{"year", workout.Year},
+			{"month", workout.Month},               // todo - take from workout_date
+			{"week", workout.Week},                 // todo-take from date
+			{"month", time.Now().Month().String()}, // todo-take from date
+			{"year", time.Now().Year()},            // take from date
 		}
 		res, err := coll.InsertOne(context.TODO(), doc)
 		//bodyJson, err := ioutil.ReadAll(req.Body)
