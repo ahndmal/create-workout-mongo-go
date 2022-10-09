@@ -34,27 +34,79 @@ func init() {
 }
 
 func createWorkout(wr http.ResponseWriter, req *http.Request) {
-
-	if req.Method == "GET" {
-		fmt.Fprint(wr, "TEST")
-	} else if req.Header.Get("Content-Type") != "" {
-		var workout Workout
-		if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
-			fmt.Fprint(wr, err)
-			log.Panicln(err)
-		}
-		uri := os.Getenv("MONGODB_URI")
-		client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
-		if err != nil {
+	var workout Workout
+	if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
+		fmt.Fprint(wr, err)
+		log.Panicln(err)
+	}
+	uri := os.Getenv("MONGODB_URI")
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
 			panic(err)
 		}
-		defer func() {
-			if err := client.Disconnect(context.TODO()); err != nil {
-				panic(err)
-			}
-		}()
-
-		coll := client.Database("workouts").Collection("workouts")
+	}()
+	coll := client.Database("workouts").Collection("workouts")
+	if req.Method == "GET" {
+		fmt.Fprint(wr, "TEST")
+	} else if req.Method == "PUT" {
+		wDate := req.URL.Query().Get("workout_date")
+		wType := req.URL.Query().Get("workout_type")
+		// filter
+		var existingWrkt Workout
+		filter := bson.D{{"workout_date", wDate}, {"workout_type", wType}}
+		coll.FindOne(context.TODO(), filter).Decode(&existingWrkt)
+		// data
+		var sets, week int
+		var comments, workDate, workType, day, month string
+		if workout.WorkoutDate != "" {
+			workDate = workout.WorkoutDate
+		} else {
+			workDate = existingWrkt.WorkoutDate
+		}
+		if workout.Sets != 0 {
+			sets = workout.Sets
+		} else {
+			sets = existingWrkt.Sets
+		}
+		if workout.Comments != "" {
+			comments = workout.Comments
+		} else {
+			comments = existingWrkt.Comments
+		}
+		if workout.WorkoutType != "" {
+			workType = workout.WorkoutType
+		} else {
+			workType = existingWrkt.WorkoutType
+		}
+		if workout.Day != "" {
+			day = workout.Day
+		} else {
+			day = existingWrkt.Day
+		}
+		if workout.Month != "" {
+			month = workout.Month
+		} else {
+			month = existingWrkt.Month
+		}
+		if workout.Week != 0 {
+			week = workout.Week
+		} else {
+			week = existingWrkt.Week
+		}
+		updatedWorkut := bson.D{{"$set", bson.D{
+			{"workout_date", workDate},
+			{"sets", sets}, {"comments", comments}, {"workout_type", workType},
+			{"day", day}, {"month", month}, {"week", week}}}}
+		uddateRes, err2 := coll.UpdateOne(context.TODO(), filter, updatedWorkut)
+		if err2 != nil {
+			log.Panicln(err2)
+		}
+		fmt.Fprintf(wr, "Updated workout %s", uddateRes.UpsertedID)
+	} else if req.Method == "POST" && req.Header.Get("Content-Type") != "" {
 		doc := bson.D{
 			{"record", time.Now().Unix()},
 			{"sets", workout.Sets},
