@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -39,6 +40,10 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(wr, err)
 		log.Panicln(err)
 	}
+
+	log.Println(">>>>>>>>>>>>>>>>>>>> json")
+	log.Println(workout)
+
 	uri := os.Getenv("MONGODB_URI")
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
@@ -50,9 +55,16 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 		}
 	}()
 	coll := client.Database("workouts").Collection("workouts")
+
+	log.Println(">>> coll")
+	log.Println(coll)
+
+	// methods
 	if req.Method == "GET" {
-		fmt.Fprint(wr, "TEST")
+		fmt.Fprint(wr, "GET not supported")
 	} else if req.Method == "PUT" {
+		wr.Header().Set("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
+
 		wDate := req.URL.Query().Get("workout_date")
 		wType := req.URL.Query().Get("workout_type")
 		// filter
@@ -106,7 +118,7 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 			log.Panicln(err2)
 		}
 		fmt.Fprintf(wr, "Updated workout %s", uddateRes.UpsertedID)
-	} else if req.Method == "POST" && req.Header.Get("Content-Type") != "" {
+	} else if req.Method == "POST" {
 		doc := bson.D{
 			{"record", time.Now().Unix()},
 			{"sets", workout.Sets},
@@ -121,12 +133,16 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 			{"year", time.Now().Year()},            // take from date
 		}
 		res, err := coll.InsertOne(context.TODO(), doc)
-		//bodyJson, err := ioutil.ReadAll(req.Body)
-		//fmt.Fprintf(wr, string(bodyJson))
-		wr.Header().Set("Content-Type", "application/json")
+
+		// todo: delete debug
+		bodyJson, err := ioutil.ReadAll(req.Body)
 		if err != nil {
-			return
+			log.Printf("> Error when reading Insert reply data. %v", err)
 		}
-		fmt.Printf("Created workout with _id: %v\n", res.InsertedID)
+		fmt.Println(string(bodyJson))
+
+		//wr.Header().Set("Content-Type", "application/json")
+
+		fmt.Fprintf(wr, "Created workout with _id: %v\n", res.InsertedID)
 	}
 }

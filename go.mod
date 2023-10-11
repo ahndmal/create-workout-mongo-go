@@ -1,8 +1,11 @@
 module github.com/AndriiMaliuta
 
-go 1.18
+go 1.21
 
-require github.com/GoogleCloudPlatform/functions-framework-go v1.5.2
+require (
+	github.com/GoogleCloudPlatform/functions-framework-go v1.5.2
+	go.mongodb.org/mongo-driver v1.10.3
+)
 
 require (
 	cloud.google.com/go v0.94.1 // indirect
@@ -74,7 +77,6 @@ require (
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/yuin/goldmark v1.3.5 // indirect
-	go.mongodb.org/mongo-driver v1.10.3 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.7.0 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
