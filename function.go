@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -123,7 +123,7 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 			{"record", time.Now().Unix()},
 			{"sets", workout.Sets},
 			{"workout_date", workout.WorkoutDate},
-			{"creation_date", time.Now().String()},
+			{"creation_date", time.Now().Format(time.RFC822)},
 			{"workout_type", workout.WorkoutType},
 			{"comments", workout.Comments},
 			{"day", workout.Day},
@@ -131,10 +131,13 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 			{"month", time.Now().Month().String()}, // todo-take from date
 			{"year", time.Now().Year()},            // take from date
 		}
+
+		//time.Parse(time.RFC822, fmt.Sprintf("01 %s %s 00:00 MST", month[0:3], year[2:4])) //RFC822 = "02 Jan 06 15:04 MST"
+
 		res, err := coll.InsertOne(context.TODO(), doc)
 
 		// todo: delete debug
-		bodyJson, err := ioutil.ReadAll(req.Body)
+		bodyJson, err := io.ReadAll(req.Body)
 		if err != nil {
 			log.Printf("> Error when reading Insert reply data. %v", err)
 		}
@@ -142,6 +145,9 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 
 		//wr.Header().Set("Content-Type", "application/json")
 
-		fmt.Fprintf(wr, "Created workout with _id: %v\n", res.InsertedID)
+		_, err2 := fmt.Fprintf(wr, "Created workout with _id: %v\n", res.InsertedID)
+		if err2 != nil {
+			log.Printf(">> Error when writing parsed JSON ")
+		}
 	}
 }
