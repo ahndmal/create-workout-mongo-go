@@ -37,7 +37,7 @@ func init() {
 func createWorkout(wr http.ResponseWriter, req *http.Request) {
 	var workout Workout
 	if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
-		fmt.Fprint(wr, err)
+		log.Printf(">>> Error decoding JSON: %v", err)
 		log.Panicln(err)
 	}
 
@@ -127,7 +127,6 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 			{"workout_type", workout.WorkoutType},
 			{"comments", workout.Comments},
 			{"day", workout.Day},
-			{"month", workout.Month},               // todo - take from workout_date
 			{"week", workout.Week},                 // todo-take from date
 			{"month", time.Now().Month().String()}, // todo-take from date
 			{"year", time.Now().Year()},            // take from date
