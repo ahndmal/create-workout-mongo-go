@@ -36,6 +36,8 @@ func init() {
 
 func createWorkout(wr http.ResponseWriter, req *http.Request) {
 	wr.Header().Set("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
+	wr.Header().Set("Access-Control-Allow-Methods", "POST,GET,OPTIONS,PUT")
+	wr.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
 	var workout Workout
 	if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
