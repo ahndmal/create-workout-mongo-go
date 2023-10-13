@@ -117,7 +117,9 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 		if err2 != nil {
 			log.Panicln(err2)
 		}
+
 		fmt.Fprintf(wr, "Updated workout %s", uddateRes.UpsertedID)
+
 	} else if req.Method == "POST" {
 		wr.Header().Set("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
 
