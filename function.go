@@ -119,17 +119,21 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 		}
 		fmt.Fprintf(wr, "Updated workout %s", uddateRes.UpsertedID)
 	} else if req.Method == "POST" {
+
+		wDateDate, err := time.Parse(time.DateOnly, workout.WorkoutDate)
+		wyear, wWeek := wDateDate.ISOWeek()
+
 		doc := bson.D{
 			{"record", time.Now().Unix()},
 			{"sets", workout.Sets},
 			{"workout_date", workout.WorkoutDate},
-			{"creation_date", time.Now().Format(time.RFC822)},
+			{"creation_date", time.Now().Format(time.RFC1123)},
 			{"workout_type", workout.WorkoutType},
 			{"comments", workout.Comments},
-			{"day", workout.Day},
-			{"week", workout.Week},                 // todo-take from date
+			{"day", wDateDate.Weekday().String()},
+			{"week", wWeek},                        // todo-take from date
 			{"month", time.Now().Month().String()}, // todo-take from date
-			{"year", time.Now().Year()},            // take from date
+			{"year", wyear},                        // take from date
 		}
 
 		//time.Parse(time.RFC822, fmt.Sprintf("01 %s %s 00:00 MST", month[0:3], year[2:4])) //RFC822 = "02 Jan 06 15:04 MST"
