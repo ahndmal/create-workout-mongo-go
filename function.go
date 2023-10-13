@@ -119,6 +119,7 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 		}
 		fmt.Fprintf(wr, "Updated workout %s", uddateRes.UpsertedID)
 	} else if req.Method == "POST" {
+		wr.Header().Set("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
 
 		wDateDate, err := time.Parse(time.DateOnly, workout.WorkoutDate)
 		wyear, wWeek := wDateDate.ISOWeek()
@@ -127,7 +128,8 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 			{"record", time.Now().Unix()},
 			{"sets", workout.Sets},
 			{"workout_date", workout.WorkoutDate},
-			{"creation_date", time.Now().Format(time.RFC1123)},
+			//{"creation_date", time.Now().Format(time.RFC1123)},
+			{"creation_date", time.Now()},
 			{"workout_type", workout.WorkoutType},
 			{"comments", workout.Comments},
 			{"day", wDateDate.Weekday().String()},
