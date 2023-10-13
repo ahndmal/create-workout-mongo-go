@@ -35,6 +35,8 @@ func init() {
 }
 
 func createWorkout(wr http.ResponseWriter, req *http.Request) {
+	wr.Header().Set("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
+
 	var workout Workout
 	if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
 		log.Printf(">>> Error decoding JSON: %v", err)
@@ -63,8 +65,6 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 	if req.Method == "GET" {
 		fmt.Fprint(wr, "GET not supported")
 	} else if req.Method == "PUT" {
-		wr.Header().Set("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
-
 		wDate := req.URL.Query().Get("workout_date")
 		wType := req.URL.Query().Get("workout_type")
 		// filter
@@ -113,6 +113,7 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 			{"workout_date", workDate},
 			{"sets", sets}, {"comments", comments}, {"workout_type", workType},
 			{"day", day}, {"month", month}, {"week", week}}}}
+
 		uddateRes, err2 := coll.UpdateOne(context.TODO(), filter, updatedWorkut)
 		if err2 != nil {
 			log.Panicln(err2)
@@ -121,8 +122,6 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(wr, "Updated workout %s", uddateRes.UpsertedID)
 
 	} else if req.Method == "POST" {
-		wr.Header().Set("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
-
 		wDateDate, err := time.Parse(time.DateOnly, workout.WorkoutDate)
 		wyear, wWeek := wDateDate.ISOWeek()
 
@@ -135,9 +134,9 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 			{"workout_type", workout.WorkoutType},
 			{"comments", workout.Comments},
 			{"day", wDateDate.Weekday().String()},
-			{"week", wWeek},                        // todo-take from date
-			{"month", time.Now().Month().String()}, // todo-take from date
-			{"year", wyear},                        // take from date
+			{"week", wWeek},
+			{"month", time.Now().Month().String()},
+			{"year", wyear},
 		}
 
 		//time.Parse(time.RFC822, fmt.Sprintf("01 %s %s 00:00 MST", month[0:3], year[2:4])) //RFC822 = "02 Jan 06 15:04 MST"
