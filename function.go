@@ -35,18 +35,20 @@ func init() {
 }
 
 func createWorkout(wr http.ResponseWriter, req *http.Request) {
-	wr.Header().Set("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
-	wr.Header().Set("Access-Control-Allow-Methods", "POST,GET,OPTIONS,PUT")
-	wr.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+	//wr.Header().Add("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
+	wr.Header().Add("Access-Control-Allow-Origin", "*")
+	wr.Header().Add("Access-Control-Allow-Methods", "POST, GET")
+	wr.Header().Add("Access-Control-Allow-Headers",
+		"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	wr.Header().Add("Access-Control-Max-Age", "600")
+	//Access-Control-Max-Age
 
 	var workout Workout
 	if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
 		log.Printf(">>> Error decoding JSON: %v", err)
 		log.Panicln(err)
 	}
-
-	log.Println(">>>>>>>>>>>>>>>>>>>> json")
-	log.Println(workout)
 
 	uri := os.Getenv("MONGODB_URI")
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -59,9 +61,6 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 		}
 	}()
 	coll := client.Database("workouts").Collection("workouts")
-
-	log.Println(">>> coll")
-	log.Println(coll)
 
 	// methods
 	if req.Method == "GET" {
