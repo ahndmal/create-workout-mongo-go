@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -30,42 +31,55 @@ type Workout struct {
 	Year         int       `json:"year"`
 }
 
+type WorkoutDto struct {
+	Sets        string `json:"sets"`
+	Comments    string `json:"comments"`
+	WorkoutDate string `json:"workout_date" bson:"workout_date"`
+	WorkoutType string `json:"workout_type" bson:"workout_type"`
+}
+
 func init() {
 	functions.HTTP("createWorkout", createWorkout)
 }
 
 func createWorkout(wr http.ResponseWriter, req *http.Request) {
 
+	header := wr.Header()
 	//wr.Header().Add("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
-	wr.Header().Add("Access-Control-Allow-Origin", "*")
-	wr.Header().Add("Access-Control-Allow-Methods", "POST, GET")
+	header.Add("Access-Control-Allow-Origin", "*")
+	header.Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 	wr.Header().Add("Access-Control-Allow-Headers",
 		"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-	wr.Header().Add("Access-Control-Max-Age", "600")
-	//Access-Control-Max-Age
-
-	var workout Workout
-	if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
-		log.Printf(">>> Error decoding JSON: %v", err)
-		log.Panicln(err)
-	}
-
-	uri := os.Getenv("MONGODB_URI")
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
-	coll := client.Database("workouts").Collection("workouts")
+	header.Add("Access-Control-Max-Age", "600")
 
 	// methods
+	// GET
 	if req.Method == "GET" {
-		fmt.Fprint(wr, "GET not supported")
+		_, err := fmt.Fprint(wr, "GET not supported")
+		if err != nil {
+			log.Printf("> Error when returing GET response: %v", err)
+		}
+
+		// PUT
 	} else if req.Method == "PUT" {
+
+		var workout Workout
+		if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
+			log.Printf(">>> Error decoding JSON: %v", err)
+			log.Panicln(err)
+		}
+
+		uri := os.Getenv("MONGODB_URI")
+		client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+		if err != nil {
+			panic(err)
+		}
+		defer func() {
+			if err := client.Disconnect(context.TODO()); err != nil {
+				panic(err)
+			}
+		}()
+		coll := client.Database("workouts").Collection("workouts")
 		wDate := req.URL.Query().Get("workout_date")
 		wType := req.URL.Query().Get("workout_type")
 		// filter
@@ -122,13 +136,33 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 
 		fmt.Fprintf(wr, "Updated workout %s", uddateRes.UpsertedID)
 
+		// POST
 	} else if req.Method == "POST" {
+		var workout WorkoutDto
+		if err := json.NewDecoder(req.Body).Decode(&workout); err != nil {
+			log.Printf(">>> Error decoding JSON: %v", err)
+			log.Panicln(err)
+		}
+
+		uri := os.Getenv("MONGODB_URI")
+		client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+		if err != nil {
+			panic(err)
+		}
+		defer func() {
+			if err := client.Disconnect(context.TODO()); err != nil {
+				panic(err)
+			}
+		}()
+		coll := client.Database("workouts").Collection("workouts")
 		wDateDate, err := time.Parse(time.DateOnly, workout.WorkoutDate)
 		wyear, wWeek := wDateDate.ISOWeek()
 
+		sets, err := strconv.Atoi(workout.Sets)
+
 		doc := bson.D{
 			{"record", time.Now().Unix()},
-			{"sets", workout.Sets},
+			{"sets", sets},
 			{"workout_date", workout.WorkoutDate},
 			//{"creation_date", time.Now().Format(time.RFC1123)},
 			{"creation_date", time.Now()},
@@ -155,7 +189,7 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 
 		_, err2 := fmt.Fprintf(wr, "Created workout with _id: %v\n", res.InsertedID)
 		if err2 != nil {
-			log.Printf(">> Error when writing parsed JSON ")
+			log.Printf(">> Error when writing parsed JSON: %v", err2)
 		}
 	}
 }
