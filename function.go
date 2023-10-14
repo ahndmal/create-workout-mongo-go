@@ -48,9 +48,10 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 	//wr.Header().Add("Access-Control-Allow-Origin", "https://workouts-web-static.vercel.app")
 	header.Add("Access-Control-Allow-Origin", "*")
 	header.Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	wr.Header().Add("Access-Control-Allow-Headers",
+	header.Add("Access-Control-Allow-Headers",
 		"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 	header.Add("Access-Control-Max-Age", "600")
+	header.Add("Accept", "application/json")
 
 	// methods
 	// GET
@@ -187,7 +188,9 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 
 		//wr.Header().Set("Content-Type", "application/json")
 
-		_, err2 := fmt.Fprintf(wr, "Created workout with _id: %v\n", res.InsertedID)
+		//_, err2 := fmt.Fprintf(wr, "Created workout with _id: %v\n", res.InsertedID)
+		_, err2 := fmt.Fprintf(wr, "{ \"created_id\": \"%s\" }", res.InsertedID)
+
 		if err2 != nil {
 			log.Printf(">> Error when writing parsed JSON: %v", err2)
 		}
