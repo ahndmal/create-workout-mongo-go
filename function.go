@@ -148,10 +148,12 @@ func createWorkout(wr http.ResponseWriter, req *http.Request) {
 		uri := os.Getenv("MONGODB_URI")
 		client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 		if err != nil {
+			fmt.Printf("Error connecting to MongoDB!")
 			panic(err)
 		}
 		defer func() {
 			if err := client.Disconnect(context.TODO()); err != nil {
+				fmt.Printf("Error disconnecting from MongoDB!")
 				panic(err)
 			}
 		}()

@@ -7,3 +7,5 @@ deploy:
 		 --runtime=go121 \
 		 --entry-point=createWorkout \
 		 --allow-unauthenticated
+update:
+	go get -u ./...
