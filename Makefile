@@ -1,4 +1,10 @@
 deploy:
+	gcloud run deploy create-workout-mongo-go \
+       --source . \
+       --function functions.HelloWorld \
+       --base-image java25 \
+       --region REGION \
+       --allow-unauthenticated
 	gcloud functions deploy create-workout-mongo-go \
 		 --gen2 \
 		 --region=us-central1 \

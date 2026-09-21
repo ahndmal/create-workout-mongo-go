@@ -1,2 +1,6 @@
 .idea
 .vscode
+.git
+.gitignore
+*.iml
+build
